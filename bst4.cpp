@@ -19,7 +19,6 @@ int standard_cmp(T& a, T& b) {
 template<typename T>
 int reverse_cmp(T& a, T& b) { return standard_cmp(b,a); }
 
-
 // for syntactic convenience (pure syntactic expansion)
 #define node Node<T,cmp>
 #define optnode option_ptr<Node<T,cmp>>
