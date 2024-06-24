@@ -1,6 +1,6 @@
 /*  *** option_ptr monadic smart pointer ***  
 
-    An option_ptr works like unique_ptr but does not by default
+    An `option_ptr` works like `std::unique_ptr` but does not by default
     overload dereferencing operations such as * and ->, although these
     are still available under conditional compilation.  The idea is to
     prevent problems caused by dereferencing a unique_pointer after a

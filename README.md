@@ -1,6 +1,6 @@
 ## Monadic Smart Pointer **`option_ptr`** for C++
 
-An option_ptr works like unique_ptr but does not by default overload
+An `option_ptr` works like `std::unique_ptr` but does not by default overload
 dereferencing operations such as `*` and `->`, although these are still
 available under conditional compilation.  The idea is to prevent
 problems caused by dereferencing a unique pointer after a move.  The
