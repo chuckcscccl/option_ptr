@@ -1,15 +1,27 @@
 /*  *** option_ptr monadic smart pointer ***  
 
-    An option_ptr works like unique_ptr but does not overload dereference
-    operations such as * and ->. A unique_ptr can be dereferenced after
-    a move, resulting in a null pointer error.  Such errors are avoided
-    by option_ptr because the value pointed to can only be accessed 
-    through combinators such as bind/map/match.
+    An option_ptr works like unique_ptr but does not by default
+    overload dereferencing operations such as * and ->, although these
+    are still available under conditional compilation.  The idea is to
+    prevent problems caused by dereferencing a unique_pointer after a
+    move.  The heap value pointed to by an option_ptr should only be
+    accessed through combinators such as bind/map/match.
 
-    Like unique_ptr, option_ptr always points to heap and should only
-    be created with the Some and Nothing functions.  Some is like
-    make_unique.  The move semantics of option_ptr is the same as for
-    unique_ptr.
+    Like unique_ptr, option_ptr always points to heap.  It is not
+    intended as a replacement for the built-in std::optional type.
+    Unlike unique_ptr, the constructor that take a raw pointer is
+    private and can only be invoked from friend functions `Some` and
+    `Nothing`.  Some is similar to make_unique.  The move semantics of
+    option_ptr is similar to that of unique_ptr.
+
+    A specialization for arrays is also defined.
+
+    The unchecked pointer operators * and -> become available if source
+    is compiled under the `g++ -D UNCHECKED_DEREF` option.
+
+    The included sample program `bst4.cpp` provides an implementation of
+    binary search trees using option_ptr.
+
 */
 #include<functional>
 #include<iostream>
@@ -153,6 +165,11 @@ public:
     else return option_ptr<TU>();
   }//map_move
 
+#ifdef UNCHECKED_DEREF
+  TY& operator *() { return *ptr; }
+  TY* operator ->() { return ptr; }
+#endif
+  
   // Special operations - use with care
   void memset_with(int c, size_t n) {
     if (ptr) memset(ptr,c,n);
@@ -160,6 +177,7 @@ public:
   void memcpy_from(option_ptr<TY>& other, size_t n) {
     if (ptr && other.ptr) memcpy(ptr,other.ptr,n);
   }
+
 }; // option_ptr class
 
 
@@ -404,33 +422,14 @@ int main(int argc, char* argv[]) {
   cout << "largest: " << largest(A,0) << endl;
 
   auto num2 = Some<int>(3);
+
+#ifdef UNCHECKED_DEREF
+  cout << *num2 << "  :: (unchecked deref)\n";
+#endif
+  
   num2.memcpy_from(num2,sizeof(int));
   cout << "num2: " << num2 << endl;
   
   return 0;
 }//main
-*/
-
-/*
-MIT License
-
-Copyright (c) 2023 Chuck Liang
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
 */

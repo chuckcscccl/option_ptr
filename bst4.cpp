@@ -192,5 +192,7 @@ int main() {
   tree2.map_inorder([](double& x){cout << x << "  ";});
   cout << "\nsize of moved tree: " << tree.size() << endl;
   //tree.map_inorder([](double& x){cout << x << "  ";}); // does not crash
+
+  
   return 0;
 }//main
