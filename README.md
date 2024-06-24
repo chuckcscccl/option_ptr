@@ -90,17 +90,20 @@ int main(int argc, char* argv[]) {
   cout << "moved to number: " << number << endl;
   
   number
-    .mutate([](auto& x){return x-5;})
-    .map<int>([](int& x)->int {return x-5;})
+    .mutate([](auto& x){return x-5;})  // in-place mutation of value
+    .map<int>([](int& x)->int {return x-5;}) // maps to new option_ptr
     .bind<double>([](int& x)->option_ptr<double> {return safediv(100,x);})
     .mutate([](auto& x){return x*x;})
-    .match_do(
+     // match_do takes 2 void functions, for Some and None cases    
+    .match_do(  
               [](auto& x){cout<<"result="<<x<<endl;},   //some case
               [](){cout<<"no result\n";}                //none case
      ); // some explicit types not required if using g++ instead of clang++
 
   number = Some<int>(50);
-  int x = number.match<int>([](int& y){return y/2;}, [](){return 0;});
+  // match takes two functions that return values
+  int x = number.match<int>([](int& y){return y/2;},
+                            [](){return 0;});
   cout << "x is " << x << endl;
 
   bool odd = number.match<bool>([](int& y){return y%2==1;},[](){return false;});
