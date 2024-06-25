@@ -1,6 +1,6 @@
 ## Monadic Smart Pointer **`option_ptr`** for C++
 
-An `option_ptr` works like `std::unique_ptr` but does not by default overload
+An **[option_ptr](https://github.com/chuckcscccl/option_ptr/blob/main/option_ptr.cpp)** works like `std::unique_ptr` but does not by default overload
 dereferencing operations such as `*` and `->`, although these are still
 available under conditional compilation.  The idea is to prevent
 problems caused by dereferencing a unique pointer after a move.  The
@@ -8,7 +8,7 @@ heap value pointed to by an option_ptr should only be accessed through
 combinators such as bind/map/match.
 
 Like `std::unique_ptr`, `option_ptr` can only point to heap.  It is
-not intended as a replacement for the built-in `std::optional type`.
+not intended as a replacement for the built-in `std::optional` type.
 Unlike `unique_ptr`, the constructor that take a raw pointer is
 private and can only be invoked from friend functions `Some` and
 `Nothing`.  Some is similar to make_unique.  The move semantics of
@@ -50,35 +50,7 @@ option_ptr<int> largest(int A[], int length) {
   return Some<int>(ax);
 }//largest
 
-void arraydemo() {
-  option_ptr<int[]> C = Some_array<int>(10);
-  option_ptr<int[]> A = Some_array<int>(20);
-  A = move(C);
-
-  for(int i=0;i<10;i++) A[i] = i*i;
-  for(int i=0;i<A.size();i++) cout << A[i] << ", ";  cout << endl;
-  A.map_do([](int& x){cout << "I did it\n";});
-  A(3).map_do([](int& x) { cout << "got " << x << endl; }); // inherited
-  A(13).map_do([](int& x) { cout << "got " << x << endl; });
-  option_ptr<int[]> B = move(A);
-  A(4).map_do([](int& x) { cout << "A got " << x << endl; });
-  B(4).map_do([](int& x) { cout << "B got " << x << endl; });
-
-  option_ptr<int[]> B2 = B.Map<int>([](int& x) {return x*10;});
-  for(int i=0;i<B2.size();i++) cout << B2[i] << ", ";  cout << endl;
-  auto sum =
-    B2
-    .reverse()
-    .reduce([](int& x, int& y) {return x-y;}, 0);
-    
-  cout << "sum: " << sum << endl;
-
-  option_ptr<option_ptr<int>[]> D = Some_array<option_ptr<int>>(2);
-  D[1] = Some<int>(55);
-  //D(1).map_do([](auto& x){});  // won't compile: requires std::copyable
-  cout << "\nend of arraydemo\n";
-}
-
+void arraydemo();
 
 //// for testing:
 int main(int argc, char* argv[]) {
@@ -125,8 +97,37 @@ int main(int argc, char* argv[]) {
   return 0;
 }//main
 
+
+void arraydemo() {
+  option_ptr<int[]> C = Some_array<int>(10);
+  option_ptr<int[]> A = Some_array<int>(20);
+  A = move(C);
+
+  for(int i=0;i<10;i++) A[i] = i*i;
+  for(int i=0;i<A.size();i++) cout << A[i] << ", ";  cout << endl;
+  A.map_do([](int& x){cout << "I did it\n";});
+  A(3).map_do([](int& x) { cout << "got " << x << endl; }); // inherited
+  A(13).map_do([](int& x) { cout << "got " << x << endl; });
+  option_ptr<int[]> B = move(A);
+  A(4).map_do([](int& x) { cout << "A got " << x << endl; });
+  B(4).map_do([](int& x) { cout << "B got " << x << endl; });
+
+  option_ptr<int[]> B2 = B.Map<int>([](int& x) {return x*10;});
+  for(int i=0;i<B2.size();i++) cout << B2[i] << ", ";  cout << endl;
+  auto sum =
+    B2
+    .reverse()
+    .reduce([](int& x, int& y) {return x-y;}, 0);
+    
+  cout << "sum: " << sum << endl;
+
+  option_ptr<option_ptr<int>[]> D = Some_array<option_ptr<int>>(2);
+  D[1] = Some<int>(55);
+  //D(1).map_do([](auto& x){});  // won't compile: requires std::copyable
+  cout << "\nend of arraydemo\n";
+}
 ```
 
 
-Futhermore, the included sample program `bst4.cpp` provides an implementation of
+Futhermore, the included sample program [bst4.cpp](https://github.com/chuckcscccl/option_ptr/blob/main/bst4.cpp) provides an implementation of
 binary search trees using option_ptr.
