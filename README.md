@@ -124,7 +124,6 @@ void arraydemo() {
 
   option_ptr<option_ptr<int>[]> D = Some_array<option_ptr<int>>(2);
   D[1] = Some<int>(55);
-  //D(1).map_do([](auto& x){});  // won't compile: requires std::copyable
   cout << "\nend of arraydemo\n";
 }
 ```
