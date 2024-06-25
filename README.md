@@ -78,7 +78,8 @@ int main(int argc, char* argv[]) {
                             [](){return 0;});
   cout << "x is " << x << endl;
 
-  bool odd = number.match<bool>([](int& y){return y%2==1;},[](){return false;});
+  bool odd = number.match<bool>([](int& y){return y%2==1;},
+                                [](){return false;});
   cout << "odd: " << odd << endl;
   
   int A[5] = {3,2,7,4,1};
