@@ -80,19 +80,24 @@ public:
 
   /////////////// Move Semantics:
 
-  option_ptr<TY>& operator=(option_ptr<TY>&& other) { 
+  template<typename Up>
+  option_ptr<TY>& operator=(option_ptr<Up>&& other) {
+    if (this == (option_ptr<TY>*)&other) return *this;
     if (ptr) deleter::destruct(ptr); // prevent memory leaks before assignment
-    ptr = other.ptr;  // takes over "ownership" of heap value
+    ptr = static_cast<TY*>(other.ptr);  // takes over "ownership" of heap value
     other.ptr = nullptr; // ownership is unqiue
     return *this;
   }// move assignment operator
 
-  option_ptr(option_ptr<TY>&& other) {
+  template<typename Up>  
+  option_ptr(option_ptr<Up>&& other) {
     if (ptr) deleter::destruct(ptr);
-    ptr = other.ptr;    
+    ptr = static_cast<TY*>(other.ptr);
     other.ptr = nullptr;
   }// move constructor
 
+  const option_ptr<TY>& operator =(const option_ptr<TY>& other) = delete;
+  option_ptr(const option_ptr<TY>& other) = delete;
 
   ///////////////// Monadic operations without move:
   
