@@ -64,15 +64,11 @@ public:
   friend option_ptr<TU> Some(Args&&... args);
   template<class TU>
   friend option_ptr<TU> Nothing();
-  friend ostream& operator <<(ostream& out, option_ptr&& r) {
+  friend ostream& operator <<(ostream& out, const option_ptr& r) {
     if (r.ptr) { out << "Some(" << *r.ptr << ")"; }
     else { out << "None"; }
     return out;
-  }// overload << for R-value references
-  friend ostream& operator <<(ostream& out, option_ptr& r)  {
-    out << move(r);  // this move does not invoke move constructor
-    return out;
-  }// overload << for L-value references
+  }
 
   // one-time constant for this type
   static const option_ptr<TY> None;
