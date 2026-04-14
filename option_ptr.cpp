@@ -98,14 +98,14 @@ public:
   ///////////////// Monadic operations without move:
   
   template<class TU>
-  option_ptr<TU> bind(function<option_ptr<TU>(TY&)> f) {
+  option_ptr<TU> bind(function<option_ptr<TU>(TY&)> f) const {
     if (ptr) return f(*ptr);
     else return option_ptr<TU>();
     //else return move(*(option_ptr<TU>*)this); // not a good idea
   }//bind
 
   template<class TU>
-  option_ptr<TU> map(function<TU(TY&)> f) {
+  option_ptr<TU> map(function<TU(TY&)> f) const {
     if (ptr) {
       TU result = f(*ptr);
       TU* pr = new TU(result);
@@ -114,24 +114,24 @@ public:
     else return option_ptr<TU>();
   }// a.map(f) == a.bind([&](auto x){return Some(f(x));})
 
-  void map_do(function<void(TY&)> f) {
+  void map_do(function<void(TY&)> f) const {
     if (ptr) f(*ptr);
   }
 
   template<typename TU>
-  TU match(function<TU(TY&)> somefun, function<TU()> nonefun) {
+  TU match(function<TU(TY&)> somefun, function<TU()> nonefun) const {
     if (ptr) return somefun(*ptr); else return nonefun();
   }//match
 
   // explicit template instantiation - only in namespace scope
   //template  <> bool match<bool>(function<bool(TY&)>, function<bool()>);
   
-  void match_do(function<void(TY&)> some, function<void()> none) {
+  void match_do(function<void(TY&)> some, function<void()> none) const {
     if (ptr) some(*ptr); else none();
   }//match do
 
   // get_or does not move, returns reference
-  TY& get_or(TY& default_val) {
+  TY& get_or(TY& default_val) const {
     if (ptr) return *ptr; else return default_val;
   }
 
@@ -157,7 +157,7 @@ public:
   template<class TU>
   option_ptr<TU> map_move(function<TU(TY)> f) {
     if (ptr) {
-      TU result = f(*ptr);
+      TU result = f(move(*ptr));
       TU* pr = new TU(result);
       deleter::destruct(ptr);
       ptr = nullptr;
@@ -165,6 +165,18 @@ public:
     }
     else return option_ptr<TU>();
   }//map_move
+
+  // bind_move moves value into new option_ptr
+  template<class TU>
+  option_ptr<TU> bind_move (function<option_ptr<TU>(TY)> f) {  
+    if (ptr) {
+      option_ptr<TU> result = f(move(*ptr));
+      deleter::destruct(ptr);
+      ptr = nullptr;
+      return result;
+    }
+    else return option_ptr<TU>();
+  }//map_move  
 
 #ifdef UNCHECKED_DEREF
   TY& operator *() { return *ptr; }
