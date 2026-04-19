@@ -9,7 +9,7 @@
 
     Like unique_ptr, option_ptr always points to heap.  It is not
     intended as a replacement for the built-in std::optional type.
-    Unlike unique_ptr, the constructor that take a raw pointer is
+    Unlike unique_ptr, the constructor that takes a raw pointer is
     private and can only be invoked from friend functions `Some` and
     `Nothing`.  Some is similar to make_unique.  The move semantics of
     option_ptr is similar to that of unique_ptr.
@@ -87,7 +87,6 @@ public:
 
   template<typename Up>  
   option_ptr(option_ptr<Up>&& other) {
-    if (ptr) deleter::destruct(ptr);
     ptr = static_cast<TY*>(other.ptr);
     other.ptr = nullptr;
   }// move constructor
