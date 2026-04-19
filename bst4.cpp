@@ -11,13 +11,13 @@ template<typename T>
 concept ORDERED = requires(T x) { x==x || x<x || x>x; }; //must compile
 
 template<typename T>
-int standard_cmp(T& a, T& b) {
+int standard_cmp(const T& a, const T& b) {
   if (a==b) return 0;
   else if (a<b) return -1;
   else return 1;
 }
 template<typename T>
-int reverse_cmp(T& a, T& b) { return standard_cmp(b,a); }
+int reverse_cmp(const T& a, const T& b) { return standard_cmp(b,a); }
 
 // for syntactic convenience (pure syntactic expansion)
 #define node Node<T,cmp>
@@ -28,7 +28,7 @@ int reverse_cmp(T& a, T& b) { return standard_cmp(b,a); }
 
 // defines Node class generic with respect to type T and cmp function.
 // cmp function expected to return 0 for ==, -n for < and +m for >.
-template<typename T, int (*cmp)(T&,T&)>
+template<typename T, int (*cmp)(const T&,const T&)>
 class Node {
 private:
   T item; // value stored at node
@@ -57,7 +57,7 @@ public:
     else return false;
   }//insert
 
-  bool search(T& x) { //binary search
+  bool search(const T& x) { //binary search
     int c = cmp(x,item);
     if (c==0) return true;
     else if (c<0)
@@ -78,7 +78,7 @@ public:
 };// Node class
 
 // wrapper class, `ORDERED T` same as ... requires ORDERED<T>
-template<ORDERED T, int (*cmp)(T&,T&) = standard_cmp<T>>
+template<ORDERED T, int (*cmp)(const T&,const T&) = standard_cmp<T>>
 class BST {
 private:
   option_ptr<Node<T,cmp>> root;
@@ -111,11 +111,10 @@ public:
     return inserted;
   }//insert
 
-  bool contains(T& x) {
+  bool contains(const T& x) {
      return root.matchbool([&x](node& n) {return n.search(x);},
   		           []() {return false;});
   }//contains
-  bool contains_val(T x) { return contains(x); }
 
   void map_inorder(function<void(T&)> f) {
     root.map_do([&f](node& n ){n.map_inorder(f);});
@@ -142,9 +141,9 @@ public:
 
 /////////// arbitrary class for type-checking template Node class
 struct Arbitrary {
-  bool operator <(Arbitrary& x) { return false; }
-  bool operator >(Arbitrary& x) { return false; }  
-  bool operator ==(Arbitrary& x) { return true; }
+  bool operator <(const Arbitrary& x) const { return false; }
+  bool operator >(const Arbitrary& x) const { return false; }  
+  bool operator ==(const Arbitrary& x) const { return true; }
   // overloads minimally satisfy requirements of ORDERED concept
 };
 
@@ -154,19 +153,18 @@ void type_check_templates() {   // not called, just compiled
   BST<Arbitrary> tree;
   assert(tree.insert(a1));
   assert(tree.contains(a1));
-  assert(tree.contains_val(a1));  
   assert(tree.size()==1);
 }//type_check_Node
 
 
-int int_reverse_cmp(int& x, int& y) { return y-x; }  // custom cmp function
+int int_reverse_cmp(const int& x, const int& y) { return y-x; }
 // the choice of cmp function is made at COMPILE TIME, in contrast to
 // java-ish languages.
 
 // but what if I want to decide to sort in increasing or decreasing order
 // at RUNTIME?  I can cheat with a global variable!
 bool decreasing_float = false;
-int float_cmp(double& x, double& y) {  // compares floats by rounding
+int float_cmp(const double& x, const double& y) {  // compares by rounding
   int64_t xr = (int64_t)(x*10000000 + 0.5);
   int64_t yr = (int64_t)(y*10000000 + 0.5);
   if (decreasing_float) return yr-xr; else return xr-yr;
@@ -179,8 +177,8 @@ int main() {
   //decreasing_float = true; // sort in decreasing order
   BST<double,float_cmp> tree;
   for(double i:{5.0,4.0,1.5,8.0,7.2,9.1,5.9,2.5}) tree.insert(i);
-  cout << tree.contains_val(7.2) << endl;
-  cout << tree.contains_val(6.0) << endl;  
+  cout << tree.contains(7.2) << endl;
+  cout << tree.contains(6.0) << endl;  
   cout << "tree size " << tree.size() << endl;
 
   double sum = 0.0;
