@@ -78,15 +78,20 @@ public:
 
   template<typename Up>
   option_ptr<TY>& operator=(option_ptr<Up>&& other) {
+    static_assert(is_base_of<TY,Up>::value || is_same<TY,Up>::value,
+		  "assignment of option_ptr to non-subclass value");
     if (this == (option_ptr<TY>*)&other) return *this;
-    if (ptr) deleter::destruct(ptr); // prevent memory leaks before assignment
+    TY* temp = ptr;  // for delete later
     ptr = static_cast<TY*>(other.ptr);  // takes over "ownership" of heap value
     other.ptr = nullptr; // ownership is unqiue
+    if (temp) deleter::destruct(temp);
     return *this;
   }// move assignment operator
 
   template<typename Up>  
   option_ptr(option_ptr<Up>&& other) {
+    static_assert(is_base_of<TY,Up>::value || is_same<TY,Up>::value,
+		  "assignment of option_ptr to non-subclass value");    
     ptr = static_cast<TY*>(other.ptr);
     other.ptr = nullptr;
   }// move constructor
@@ -128,6 +133,10 @@ public:
   void match_do(function<void(TY&)> some, function<void()> none) const {
     if (ptr) some(*ptr); else none();
   }//match do
+
+  void if_do(function<void(TY&)> action) {
+    if (ptr) action(*ptr);
+  }
 
   // get_or does not move, returns reference
   TY& get_or(TY& default_val) const {
@@ -317,7 +326,9 @@ public:
   }
   
   // move semantics must be redefined because of type (and len)
-  option_ptr<TY[]>& operator=(option_ptr<TY[]>&& other) { 
+  // arrays are not allowed to be covariant.
+  option_ptr<TY[]>& operator=(option_ptr<TY[]>&& other) {
+    if (this==&other) return *this;
     if (this->ptr) deleter::destruct(this->ptr);
     this->ptr = other.ptr;
     len = other.len;
